@@ -72,3 +72,26 @@ plot(x, log = 'y', xlim = range(c(1, length(xcomb), length(x))),
      type = 'l', col = 'blue', lwd = 3)
 points(xcomb, col = gray(0, alpha = 0.5), pch = 16)
 points(meteDist2Rank(sad(meteESF(1:length(xcomb), xcomb))), col = 'red', type = 'l')
+
+
+## common is rare somewhere and certain rare things are rare everywhere
+x <- meteDist2Rank(sad(meteESF(S0 = 100, N0 = 10000)))
+xsub1 <- sample.sad(x, round(sum(x)*0.5))
+xsub2 <- sample.sad(x, round(sum(x)*0.5))
+
+rareCutOff <- 0.005
+rareCutOff <- ifelse(max(x)*rareCutOff < 0.5, 1, round(max(x)*rareCutOff))
+trueRare <- sample(which(x <= rareCutOff), size = 0.5*sum(x <= rareCutOff))
+
+comReOrder <- order((length(x) - length(trueRare)):1 + 
+                        rnorm(length(x) - length(trueRare), sd = 10))
+xcomb <- c(xsub1[-trueRare][comReOrder] + xsub2[-trueRare], xsub1[trueRare], xsub2[trueRare])
+xcomb <- sort(xcomb[xcomb > 0], TRUE)
+
+plot(x, log = 'y', xlim = range(c(1, length(xcomb), length(x))), 
+     type = 'l', col = 'blue', lwd = 3)
+points(xcomb, col = gray(0, alpha = 0.5), pch = 16)
+points(meteDist2Rank(sad(meteESF(1:length(xcomb), xcomb))), col = 'red', type = 'l')
+
+
+
