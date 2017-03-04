@@ -10,6 +10,7 @@ dataWD <- '~/Dropbox/Research/data/stri'
 
 ## helper function to make all calculations
 ssadLL <- function(f, nrow, ncol) {
+    browser()
     dat <- read.csv(file.path(dataWD, f))
     dat <- dat[dat$year == max(dat$year), ]
     datArea <- .findAreas(dat$spp, dat$count, x = dat$x, y = dat$y, row = nrow, col = ncol)
@@ -18,8 +19,21 @@ ssadLL <- function(f, nrow, ncol) {
     datMat <- tidy2mat(dat$cell, dat$spp, dat$count)
     datMat <- datMat[, colSums(datMat) > 0]
     
-    llObs <- apply(datMat, 2, function(x) 
-        unlist(fitdistr(x, 'negative binomial')[c('estimate', 'loglik')]))
+    datMat2 <- datMat[round(seq(1, 50, length.out = 20)), ]
+    datMat2 <- datMat2[, colSums(datMat2) > 0]
+    
+    llObs2 <- apply(datMat2, 2, function(x) {
+        unlist(fitdistr(x, 'negative binomial')[c('estimate', 'loglik')])
+    })
+    
+    llObs <- apply(datMat, 2, function(x) {
+        unlist(fitdistr(x, 'negative binomial')[c('estimate', 'loglik')])
+    })
+    
+    foo2 <- llObs2[2, ]
+    foo <- llObs[2, names(foo2)]
+    
+    plot(foo, foo2)
     
     llThr <- apply(llObs, 2, function(x) 
         sum(dnbinom(rnbinom(100*nrow(datMat), size = x[1], mu = x[2]), 
@@ -63,3 +77,10 @@ points(sort(cocoSSAD[, 2], TRUE), type = 'l', col = 'skyblue', lwd = 2)
 points(sort(ucscSSAD[, 2], TRUE), type = 'l', col = 'black', lwd = 2)
 
 plot(pasoSSAD$estimate.mu, pasoSSAD$N)
+
+
+
+pasoSim <- replicate(50, rnbinom(nrow(pasoSSAD), size = pasoSSAD$estimate.size, 
+                                 mu = pasoSSAD$estimate.mu))
+
+plot(sad(meteESF(1:nrow(pasoSim), rowSums(pasoSim[, 1:1]))), ptype = 'rad', log = 'y')
